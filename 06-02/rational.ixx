@@ -23,7 +23,7 @@ export namespace demo
         Rational& operator++();
         Rational& operator--();
 
-        // ✅ friend-декларации дают доступ к private полям
+
         friend Rational operator+(Rational, const Rational&);
         friend Rational operator-(Rational, const Rational&);
         friend Rational operator*(Rational, const Rational&);
@@ -42,7 +42,6 @@ export namespace demo
         int m_den = 1;
     };
 
-    // (не обязательно, но можно оставить)
     Rational operator+(Rational, const Rational&);
     Rational operator-(Rational, const Rational&);
     Rational operator*(Rational, const Rational&);
@@ -54,3 +53,4 @@ export namespace demo
     std::istream& operator>>(std::istream&, Rational&);
     std::ostream& operator<<(std::ostream&, const Rational&);
 }
+
