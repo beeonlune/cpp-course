@@ -135,11 +135,11 @@ constexpr Duration<int, Ratio<1, 3>> d2{2}; // 2 * (1/3)
 
 // 1/2 + 2/3 = 3/6 + 4/6 = 7/6
 constexpr auto d3 = d1 + d2;
-static_assert(d3.x == 7, "Duration addition must yield 7 units of 1/6");
+static_assert(d3.x == 7);
 
 // 1/2 - 2/3 = 3/6 - 4/6 = -1/6
 constexpr auto d4 = d1 - d2;
-static_assert(d4.x == -1, "Duration subtraction must yield -1 unit of 1/6");
+static_assert(d4.x == -1);
 
 int main()
 {
@@ -151,3 +151,4 @@ int main()
 
     return 0;
 }
+
