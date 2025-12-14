@@ -6,8 +6,7 @@ module;                  // global module fragment
 #include <ostream>
 #include <ios>
 
-module rational;         // implementation unit модуля rational
-// ВАЖНО: тут НЕ надо "import rational;" — это тот самый "cannot import module in its own purview"
+module rational;         
 
 namespace demo
 {
@@ -124,3 +123,4 @@ namespace demo
         return os << r.m_num << '/' << r.m_den;
     }
 }
+
