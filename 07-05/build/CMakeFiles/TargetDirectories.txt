@@ -1,0 +1,5 @@
+/Users/alienn/Downloads/Программы/07-05/build/CMakeFiles/sort_demo.dir
+/Users/alienn/Downloads/Программы/07-05/build/CMakeFiles/sort_tests.dir
+/Users/alienn/Downloads/Программы/07-05/build/CMakeFiles/sort_bench.dir
+/Users/alienn/Downloads/Программы/07-05/build/CMakeFiles/edit_cache.dir
+/Users/alienn/Downloads/Программы/07-05/build/CMakeFiles/rebuild_cache.dir

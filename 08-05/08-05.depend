@@ -1,0 +1,10 @@
+# depslib dependency file v1.0
+1772896079 source:c:\users\lenovo\documents\Ñ++\08-05\main.cpp
+	<cassert>
+	<chrono>
+	<cmath>
+	<cstddef>
+	<print>
+	<string>
+	<vector>
+

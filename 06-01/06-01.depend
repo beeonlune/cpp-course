@@ -1,0 +1,20 @@
+# depslib dependency file v1.0
+1765560978 source:c:\users\lenovo\documents\Ñ++\06-01\main.cpp
+	"Rational.hpp"
+	<cassert>
+	<cmath>
+	<iostream>
+
+1765560566 c:\users\lenovo\documents\Ñ++\06-01\rational.hpp
+	<compare>
+	<cstdint>
+	<iosfwd>
+
+1765560586 source:c:\users\lenovo\documents\Ñ++\06-01\rational.cpp
+	"Rational.hpp"
+	<cassert>
+	<cmath>
+	<istream>
+	<numeric>
+	<ostream>
+
