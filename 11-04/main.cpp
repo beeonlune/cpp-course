@@ -1,23 +1,27 @@
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
-#include <optional>     
-#include <utility>      
-#include <variant>      
+#include <optional>
+#include <utility>
+#include <variant>
+
 #include <gtest/gtest.h>
 
 using TwoRoots = std::pair<double, double>;
-using RootsVariant = std::variant<double, TwoRoots, std::monostate>;
+using RootsVariant = std::variant<std::monostate, double, TwoRoots>;
 using RootsOptional = std::optional<RootsVariant>;
 
-static constexpr double EPS = 1e-9;
+static constexpr double epsilon = 1e-9;
 
-static bool is_zero(const double x) noexcept
+[[nodiscard]] static bool is_zero(const double value) noexcept
 {
-    return std::abs(x) <= EPS;
+    return std::abs(value) <= epsilon;
 }
 
-// a*x^2 + b*x + c = 0
-static RootsOptional solve(const double a, const double b, const double c)
+[[nodiscard]] static RootsOptional solve(
+    const double a,
+    const double b,
+    const double c)
 {
     if (is_zero(a))
     {
@@ -27,37 +31,56 @@ static RootsOptional solve(const double a, const double b, const double c)
             {
                 return RootsVariant{std::monostate{}};
             }
+
             return std::nullopt;
         }
 
-        const double x = -c / b;
-        return RootsVariant{x};
+        return RootsVariant{-c / b};
     }
 
-    const double D = b * b - 4.0 * a * c;
+    const double discriminant = b * b - 4.0 * a * c;
 
-    if (is_zero(D))
+    if (is_zero(discriminant))
     {
-        const double x = (-b) / (2.0 * a);
-        return RootsVariant{x};
+        return RootsVariant{-b / (2.0 * a)};
     }
 
-    if (D < 0.0)
+    if (discriminant < 0.0)
     {
         return std::nullopt;
     }
 
-    const double sqrtD = std::sqrt(D);
-    double x1 = (-b - sqrtD) / (2.0 * a);
-    double x2 = (-b + sqrtD) / (2.0 * a);
+    const double root_discriminant = std::sqrt(discriminant);
 
-    if (x2 < x1)
+    double first = (-b - root_discriminant) / (2.0 * a);
+    double second = (-b + root_discriminant) / (2.0 * a);
+
+    if (second < first)
     {
-        std::swap(x1, x2);
+        std::swap(first, second);
     }
 
-    return RootsVariant{TwoRoots{x1, x2}};
+    return RootsVariant{TwoRoots{first, second}};
 }
+
+class Visitor
+{
+public:
+    void operator()(const std::monostate&) const
+    {
+        std::cout << "Infinite solutions\n";
+    }
+
+    void operator()(const double root) const
+    {
+        std::cout << root << '\n';
+    }
+
+    void operator()(const TwoRoots& roots) const
+    {
+        std::cout << roots.first << ' ' << roots.second << '\n';
+    }
+};
 
 [[maybe_unused]] static void print_solution(const RootsOptional& result)
 {
@@ -67,81 +90,99 @@ static RootsOptional solve(const double a, const double b, const double c)
         return;
     }
 
-    std::visit([](const auto& arg) {
-        using T = std::decay_t<decltype(arg)>;
-        
-        if constexpr (std::is_same_v<T, std::monostate>) {
-            std::cout << "Infinite solutions\n";
-        } 
-        else if constexpr (std::is_same_v<T, double>) {
-            std::cout << arg << "\n";
-        } 
-        else if constexpr (std::is_same_v<T, TwoRoots>) {
-            std::cout << arg.first << ' ' << arg.second << "\n";
-        }
-    }, *result);
+    std::visit(Visitor{}, *result);
 }
 
-TEST(EquationSolverTests, TwoRootsStandard) 
+TEST(EquationSolverTests, TwoRootsStandard)
 {
-    const RootsOptional r = solve(1.0, 0.0, -1.0);
-    ASSERT_TRUE(r.has_value());
-    
-    const TwoRoots* roots = std::get_if<TwoRoots>(&r.value());
-    ASSERT_NE(roots, nullptr) << "Expected 2 Roots variant";
-    
+    const RootsOptional result = solve(1.0, 0.0, -1.0);
+
+    ASSERT_TRUE(result.has_value());
+
+    const TwoRoots* roots = std::get_if<TwoRoots>(&result.value());
+
+    ASSERT_NE(roots, nullptr);
     EXPECT_DOUBLE_EQ(roots->first, -1.0);
     EXPECT_DOUBLE_EQ(roots->second, 1.0);
 }
 
-TEST(EquationSolverTests, TwoRootsShifted) 
+TEST(EquationSolverTests, TwoRootsShifted)
 {
-    const RootsOptional r = solve(2.0, -7.0, 3.0);
-    ASSERT_TRUE(r.has_value());
-    
-    const TwoRoots* roots = std::get_if<TwoRoots>(&r.value());
+    const RootsOptional result = solve(2.0, -7.0, 3.0);
+
+    ASSERT_TRUE(result.has_value());
+
+    const TwoRoots* roots = std::get_if<TwoRoots>(&result.value());
+
     ASSERT_NE(roots, nullptr);
-    
     EXPECT_DOUBLE_EQ(roots->first, 0.5);
     EXPECT_DOUBLE_EQ(roots->second, 3.0);
 }
 
-TEST(EquationSolverTests, OneRootDoubleRoot) 
+TEST(EquationSolverTests, OneRootDoubleRoot)
 {
-    const RootsOptional r = solve(1.0, 2.0, 1.0);
-    ASSERT_TRUE(r.has_value());
-    
-    const double* x = std::get_if<double>(&r.value());
-    ASSERT_NE(x, nullptr);
-    EXPECT_DOUBLE_EQ(*x, -1.0);
+    const RootsOptional result = solve(1.0, 2.0, 1.0);
+
+    ASSERT_TRUE(result.has_value());
+
+    const double* root = std::get_if<double>(&result.value());
+
+    ASSERT_NE(root, nullptr);
+    EXPECT_DOUBLE_EQ(*root, -1.0);
 }
 
-TEST(EquationSolverTests, NoRealRoots) 
+TEST(EquationSolverTests, NoRealRoots)
 {
-    const RootsOptional r = solve(1.0, 0.0, 1.0);
-    EXPECT_FALSE(r.has_value());
+    const RootsOptional result = solve(1.0, 0.0, 1.0);
+
+    EXPECT_FALSE(result.has_value());
 }
 
-TEST(EquationSolverTests, LinearEquationOneRoot) 
+TEST(EquationSolverTests, LinearEquationOneRoot)
 {
-    const RootsOptional r = solve(0.0, 2.0, 4.0);
-    ASSERT_TRUE(r.has_value());
-    
-    const double* x = std::get_if<double>(&r.value());
-    ASSERT_NE(x, nullptr);
-    EXPECT_DOUBLE_EQ(*x, -2.0);
+    const RootsOptional result = solve(0.0, 2.0, 4.0);
+
+    ASSERT_TRUE(result.has_value());
+
+    const double* root = std::get_if<double>(&result.value());
+
+    ASSERT_NE(root, nullptr);
+    EXPECT_DOUBLE_EQ(*root, -2.0);
 }
 
-TEST(EquationSolverTests, InfiniteSolutions) 
+TEST(EquationSolverTests, InfiniteSolutions)
 {
-    const RootsOptional r = solve(0.0, 0.0, 0.0);
-    ASSERT_TRUE(r.has_value());
-    
-    const std::monostate* inf = std::get_if<std::monostate>(&r.value());
-    ASSERT_NE(inf, nullptr) << "Expected infinite solutions";
+    const RootsOptional result = solve(0.0, 0.0, 0.0);
+
+    ASSERT_TRUE(result.has_value());
+
+    const std::monostate* state = std::get_if<std::monostate>(&result.value());
+
+    ASSERT_NE(state, nullptr);
 }
 
-int main(int argc, char **argv) 
+TEST(VisitorTests, HandlesMonostate)
+{
+    testing::internal::CaptureStdout();
+    std::visit(Visitor{}, RootsVariant{std::monostate{}});
+    EXPECT_EQ(testing::internal::GetCapturedStdout(), "Infinite solutions\n");
+}
+
+TEST(VisitorTests, HandlesSingleRoot)
+{
+    testing::internal::CaptureStdout();
+    std::visit(Visitor{}, RootsVariant{2.5});
+    EXPECT_EQ(testing::internal::GetCapturedStdout(), "2.5\n");
+}
+
+TEST(VisitorTests, HandlesTwoRoots)
+{
+    testing::internal::CaptureStdout();
+    std::visit(Visitor{}, RootsVariant{TwoRoots{-1.0, 3.0}});
+    EXPECT_EQ(testing::internal::GetCapturedStdout(), "-1 3\n");
+}
+
+int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

@@ -124,7 +124,7 @@ namespace calculator
             const double rounded = std::round(value);
             if (std::fabs(value - rounded) > 1e-9)
             {
-                throw std::runtime_error("factorial requires int operand");
+                throw std::runtime_error("factorial requires int");
             }
 
             double result = 1.0;
@@ -347,7 +347,7 @@ namespace calculator
 
     [[nodiscard]] std::vector<double> evaluate_file(const std::filesystem::path& path)
     {
-        std::ifstream input(path, std::ios::in);
+        std::fstream input(path, std::ios::in);
         if (!input)
         {
             throw std::runtime_error("failed to open input file");
@@ -417,7 +417,7 @@ namespace
         const std::filesystem::path& path,
         const std::string& content)
     {
-        std::ofstream output(path, std::ios::out | std::ios::trunc);
+        std::fstream output(path, std::ios::out | std::ios::trunc);
         if (!output)
         {
             throw std::runtime_error("failed to create test file");

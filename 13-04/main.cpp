@@ -1,9 +1,9 @@
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <optional>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
@@ -107,13 +107,14 @@ namespace directory_filter
     [[nodiscard]] std::string make_time_string(
         const std::filesystem::directory_entry& entry)
     {
-        const auto time_point =
-            std::chrono::floor<std::chrono::seconds>(
-                std::chrono::file_clock::to_sys(entry.last_write_time()));
+        const auto system_time =
+            std::chrono::file_clock::to_sys(entry.last_write_time());
 
-        std::stringstream stream;
-        stream << time_point;
-        return stream.str();
+        const auto seconds =
+            std::chrono::duration_cast<std::chrono::seconds>(
+                system_time.time_since_epoch()).count();
+
+        return std::to_string(seconds);
     }
 
     [[nodiscard]] std::string make_entry_line(const std::filesystem::directory_entry& entry)
@@ -149,7 +150,6 @@ namespace directory_filter
         }
 
         const std::regex pattern(pattern_text);
-
         std::vector<EntryInfo> result;
 
         for (const auto& entry : std::filesystem::directory_iterator(path))
@@ -180,6 +180,15 @@ namespace directory_filter
             std::cout << entry.line << '\n';
         }
     }
+
+    [[nodiscard]] std::string grep_comparison()
+    {
+        return
+            "Comparison with grep:\n"
+            "This program applies std::regex to directory names\n"
+            "grep usually applies a regular expression to text or file contents\n"
+            "So grep filters text lines, while this program filters filesystem names.";
+    }
 }
 
 #ifndef DIRECTORY_FILTER_BUILD_TESTS
@@ -196,6 +205,8 @@ int main(int argc, char** argv)
         directory_filter::show_filtered(
             std::filesystem::current_path(),
             argv[1]);
+
+        std::cout << directory_filter::grep_comparison() << '\n';
     }
     catch (const std::exception& exception)
     {
@@ -380,9 +391,18 @@ TEST(DirectoryFilterTests, EntryLineContainsFilename)
     const std::string line = directory_filter::make_entry_line(entry);
 
     EXPECT_NE(line.find("sample.txt"), std::string::npos);
-    EXPECT_NE(line.find("rw"), std::string::npos);
+    EXPECT_NE(line.find(" (B)"), std::string::npos);
 
     std::filesystem::remove_all(base);
+}
+
+TEST(DirectoryFilterTests, GrepComparisonMentionsDifference)
+{
+    const std::string text = directory_filter::grep_comparison();
+
+    EXPECT_NE(text.find("grep"), std::string::npos);
+    EXPECT_NE(text.find("directory entry names"), std::string::npos);
+    EXPECT_NE(text.find("text lines"), std::string::npos);
 }
 
 int main(int argc, char** argv)
