@@ -1,34 +1,8 @@
 #include <cstdio>
 
-namespace quine
-{
-    [[nodiscard]] const char* source()
-    {
-        return "#include <cstdio>%c%cnamespace quine%c{%c    [[nodiscard]] const char* source()%c    {%c        return %c%s%c;%c    }%c}%c%cint main()%c{%c    std::printf(quine::source(), 10, 10, 10, 10, 10, 10, 34, quine::source(), 34, 10, 10, 10, 10, 10, 10, 10, 10, 10);%c    return 0;%c}%c";
-    }
-}
-
 int main()
 {
-    std::printf(
-        quine::source(),
-        10,
-        10,
-        10,
-        10,
-        10,
-        10,
-        34,
-        quine::source(),
-        34,
-        10,
-        10,
-        10,
-        10,
-        10,
-        10,
-        10,
-        10,
-        10);
+    const char* source = "#include <cstdio>%c%cint main()%c{%c    const char* source = %c%s%c;%c    std::printf(source, 10, 10, 10, 10, 34, source, 34, 10, 10, 10, 10);%c    return 0;%c}%c";
+    std::printf(source, 10, 10, 10, 10, 34, source, 34, 10, 10, 10, 10);
     return 0;
 }
